@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SuperMarket ERP</title>
+    <link rel="stylesheet" href = "{{url_for('static', filename = 'style.css')}}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🛒 StockManager</div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' }}">📊 Dashboard</a>
+            <a href="{{ url_for('produits') }}" class="{{ 'active' if 'produit' in request.endpoint }}">📦 Produits</a>
+            <a href="{{ url_for('caisse')}}" class="{{ 'active' if request.endpoint =='caisse'}}">💰 Caisse</a>
+            <a href="{{ url_for('historique') }}" class="{{ 'active' if request.endpoint == 'historique' }}">🧾 Historique</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        {%with messages = get_flashed_messages(with_categories=true)%}
+            {% for category, msg in messages %}
+                <div class="alert alert-{{ category }}">{{ msg }}</div>
+            {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+
+    </main>
+</body>
+</html>

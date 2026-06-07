@@ -1,0 +1,41 @@
+{% extends "base.html"%}
+{% block content %}
+<div class="page-header">
+    <h1>📦 Gestion des Produits</h1>
+    <a href="{{ url_for('ajouter_produit') }}" class="btn btn-primary">+ Ajouter</a>
+</div>
+
+<form method="GET" class="search-bar">
+    <input type="text" name="q" placeholder="Rechercher un produit..." value="{{ search }}">
+    <button type="submit" class="btn">🔍</button>
+</form>
+
+<table class="table">
+    <thead>
+        <tr><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for p in produits%}
+        <tr class="{{ 'row-danger' if p.stock < 10 else '' }}">
+            <td>{{ p.nom }}</td>
+            <td>{{ p.categorie }}</td>
+            <td>{{ "{:,.0f}".format(p.prix)}} FCFA</td>
+            <td>
+                {% if p.stock < 10 %}
+                    <span class="bagde red">{{ p.stock }}</span>
+                {% else %}
+                    <span class="badge green">{{ p.stock }}</span>
+                {% endif %}
+            </td>
+            <td class="actions">
+                <a href="{{ url_for('modifier_produit', id=p.id)}}" class="btn btn-sm">✏</a>
+                <form method="POST" action="{{ url_for('supprimer_produit', id=p.id) }}"
+                    onsubmit="return confirm('Supprimer {{ p.nom }} ?')" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger">🗑</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

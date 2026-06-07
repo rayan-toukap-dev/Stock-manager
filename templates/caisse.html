@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block content%}
+<h1>💰 Caisse</h1>
+<div class="caisse-layout">
+    <div class="produits-grid">
+        <h2>Produits disponibles</h2>
+        <div class="grid">
+            {% for p in produits %}
+            <div class="produit-card" onclick="ajouterAuPanier({{ p.id }}, '{{ p.nom }}',{{ p.prix }},{{ p.stock }})">
+                <div class="produit-nom">{{ p.nom }}</div>
+                <div class="produit-prix">{{"{:,.0f}".format(p.prix) }} FCFA</div>
+                <div class="produit-stock">Stock: {{ p.stock }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="panier-panel">
+        <h2>🛒 Panier</h2>
+        <div id="panier-items"></div>
+        <div class="panier-total">
+            Total : <strong id="total">0</strong> FCFA
+        </div>
+        <button class="btn btn-primary btn-full" onclick="encaisser()" id="btn-encaisser" disabled>
+            ✅ Encaisser
+        </button>
+        <button class="btn btn-full" onclick="viderPanier()">🗑 Vider</button>
+    </div>
+</div>
+
+<div id="modal-recu" class="modal" style="display:none">
+    <div class="modal-content">
+        <h2>✅ Vente enregistrée !</h2>
+        <div id="recu-details"></div>
+        <button class="btn btn-primary btn-full" onclick="nouvelleVente()">Nouvelle vente</button>
+    </div>
+</div>
+
+<script>
+let panier = {};
+
+function ajouterAuPanier(id, nom, prix, stockMax){
+    if(panier[id]) {
+        if(panier[id].quantite >= stockMax){
+            alert("Stock insuffisant !");
+            return;
+        }
+        panier[id].quantite++;
+    } else {
+        panier[id] = {id, nom, prix, quantite: 1, stockMax };
+    }
+    renderPanier();
+}
+
+function renderPanier(){
+    const container = document.getElementById("panier-items");
+    const items = Object.values(panier);
+    
+    if (items.length === 0){
+        container.innerHTML = '<p class="empty">Aucun article</p>';
+        document.getElementById("total").textContent = "0";
+        document.getElementById("btn-encaisser").disabled = true;
+        return;
+    }
+
+    let html = "";
+    let total = 0;
+
+    items.forEach(item =>{
+        const sous_total = item.prix * item.quantite;
+        total += sous_total;
+        html += `
+            <div class="panier-item">
+                <span class="item-nom">${item.nom}</span>
+                <div class="item-controls">
+                    <button onclick="changerQte(${item.id}, -1)">-</button>
+                    <span>${item.quantite}</span>
+                    <button onclick="changerQte(${item.id}, 1)">+</button>
+                </div>
+                <span class="item-prix">${sous_total.toLocaleString()} F</span>
+                <button class="btn-remove" onclick="retirerItem(${item.id})">x</button>
+            </div>`;
+    });
+
+    container.innerHTML = html;
+    document.getElementById("total").textContent = total.toLocaleString();
+    document.getElementById("btn-encaisser").disabled = false;
+}
+
+function changerQte(id, delta) {
+    if(!panier[id]) return;
+    panier[id].quantite +=delta;
+    if (panier[id].quantite <= 0) delete panier[id];
+    else if (panier[id].quantite > panier[id].stockMax) panier[id].quantite = panier[id].stockMax;
+    renderPanier();
+}
+
+function retirerItem(id) {
+    delete panier[id];
+    renderPanier();
+}
+
+function viderPanier(){
+    panier = {};
+    renderPanier();
+}
+
+async function encaisser(){
+    const items = Object.values(panier);
+    if(!items.length) return;
+
+    const response = await fetch("/caisse/encaisser",{
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ panier: items})
+    });
+
+    const data = await response.json();
+    if (data.success){
+        let details = `<p><strong>N° Vente :</strong> ${data.vente_id}</p>`;
+        details += `<p><strong>Total :<strong> ${data.total.toLocaleString() } FCFA</p>`;
+        details += "<ul>" + items.map(i => `<li>${i.nom} x ${i.quantite} = ${(i.prix*i.quantite).toLocaleString()} F</li>`).join("") + "</ul>";
+        document.getElementById("recu-details").innerHTML = details;
+        document.getElementById("modal-recu").style.display = "flex";
+        panier = {};
+    }
+}
+
+function nouvelleVente(){
+    document.getElementById("modal-recu").style.display = "none";
+    renderPanier();
+    location.reload();
+}
+
+renderPanier();
+</script>
+{% endblock %}

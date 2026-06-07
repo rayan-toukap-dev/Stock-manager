@@ -1,0 +1,34 @@
+{% extends "base.html"%}
+{% block content %}
+<h1>{{ action }} un produit</h1>
+
+<form method="POST" class="form-card">
+    <div class="form-group">
+        <label>Nom du produit</label>
+        <input type="text" name="nom" value="{{ produit.nom if produit else ''}}" required>
+    </div>
+    <div class="form-group">
+        <label>Prix (FCFA)</label>
+        <input type="number" name="prix" step="1" min="1"
+            value="{{ produit.prix if produit else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label>Stock initial</label>
+        <input type="number" name="stock" min="0"
+                value="{{ produit.stock if produit else '0'}}" required>
+    </div>
+    <div class="form-group">
+        <label>Catégorie</label>
+        <select name="categorie">
+            {% for cat in ['Alimentation','Boissons','Hygiène','Électronique','Général'] %}
+                <option value="{{ cat }}" {{ 'selected' if produit and produit.categorie == cat }}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('produits') }}" class="btn">Annuler</a>
+        <button type="submit" class="btn btn-primary">{{ action }}</button>
+    </div>
+</form>
+
+{% endblock%}

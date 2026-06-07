@@ -1,0 +1,22 @@
+{% extends "base.html"%}
+{% block content %}
+<h1>🧾 Historique des Ventes</h1>
+<table class="table">
+    <thead>
+        <tr><th>N°</th><th>Date & Heure</th><th>Articles</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+        {%for v in ventes%}
+        <tr>
+            <td>#{{ v.id }}</td>
+            <td>{{ v.date_vente }}</td>
+            <td class="text-small">{{ v.details }}</td>
+            <td><strong>{{ "{:,.0f}".format(v.total) }} FCFA</strong></td>
+        </tr>
+        {% endfor %}
+        {% if not ventes %}
+        <tr><td colspan="4" class="empty">Aucune vente enregistrée.</td></tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}

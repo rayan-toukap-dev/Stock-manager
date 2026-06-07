@@ -1,0 +1,105 @@
+{% extends "base.html"%}
+{% block content%}
+
+<h1>📊 Tableau de bord</h1>
+
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-value">{{ "{:,.0f}".format(ca_jour) }} F</div>
+        <div class="stat-label">Chiffre d'affaires du jour</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-value">{{ nb_ventes }}</div>
+        <div class="stat-label">Ventes aujourd'hui</div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-value">{{stock_faible|length}}</div>
+        <div class="stat-label">Produits stock faible</div>
+    </div>
+</div>
+
+
+<div class="section">
+    <h2>📈 Chiffre d'affaires - 7 derniers jours</h2>
+    <canvas id="chartCA" height="90"></canvas>
+</div>
+
+{% if stock_faible %}
+<div class="section">
+    <h2>⚠ Alerte Stock Faible</h2>
+    <table class="table">
+        <thead><tr><th>Produit</th><th>Stock restant</th><th>Catégorie</th></tr></thead>
+        <tbody>
+            {% for p in stock_faible %}
+            <tr class="row-danger">
+                <td>{{ p.nom }}</td>
+                <td><span class="badge red">{{ p.stock }} unités</span></td>
+                <td>{{ p.categorie }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{%endif %}
+
+{% if top_produits %}
+<div class="section">
+    <h2>🏆 Top Produits Vendus</h2>
+    <table class="table">
+        <thead><tr><th>Produit</th><th>Quantité vendue</th></tr></thead>
+        <tbody>
+            {% for p in top_produits %}
+            <tr>
+                <td>{{ p.produit_nom }}</td>
+                <td>{{ p.total_vendu }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = {{ labels | tojson }};
+    const dataCA = {{ data_ca | tojson}};
+
+    const ctx = document.getElementById('chartCA').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data:{
+            labels: labels,
+            datasets: [{
+                label:'CA (FCFA)',
+                data:dataCA,
+                backgroundColor: 'rgba(0, 57, 172,0.15)',
+                borderColor: '#0039AC',
+                borderWidth: 2,
+                borderRadius: 8,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {display: false},
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.parsed.y.toLocaleString()} FCFA`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero:true,
+                    ticks: {
+                        callback: val => val.toLocaleString() +' F'
+                    },
+                    grid:{ color: '#f0f0f0'}
+                },
+                x:{ grid: { display:false }}
+            }
+        }
+    });
+</script>
+{% endblock %}
