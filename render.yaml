@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: gestivente
+    name: stockmanager
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
